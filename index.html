@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Dipper's bag · Gravity Falls</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: #2c1f14;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 100%;
+            max-height: 100%;
+            background: #3d2b1a;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.7);
+        }
+
+        #bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            z-index: 1;
+            display: block;
+        }
+
+        #items-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .item {
+            position: absolute;
+            pointer-events: auto;
+            cursor: pointer;
+            width: 14vmin;
+            height: 14vmin;
+            border-radius: 50%;
+            box-shadow: 0 0 20px 6px rgba(255, 230, 180, 0.5), 0 0 40px 12px rgba(255, 210, 130, 0.2);
+            transition: transform 0.15s ease, box-shadow 0.2s, opacity 0.3s;
+            animation: float 2.8s ease-in-out infinite alternate;
+            will-change: transform;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .item.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+            border-radius: 20%;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .item:hover {
+            transform: scale(1.07);
+            box-shadow: 0 0 30px 12px rgba(255, 235, 150, 0.7);
+        }
+
+        .item.hidden {
+            opacity: 0;
+            pointer-events: none;
+            animation: none;
+        }
+
+        .item.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(-4px) rotate(-2deg); }
+            100% { transform: translateY(6px) rotate(2deg); }
+        }
+
+        #progress-bar {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(30, 20, 10, 0.5);
+            backdrop-filter: blur(4px);
+            padding: 8px 14px;
+            border-radius: 16px;
+            border: 2px solid #dbbd94;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        #progress-bar.show {
+            opacity: 1;
+        }
+
+        .slot {
+            width: 4.5vmin;
+            height: 4.5vmin;
+            min-width: 32px;
+            min-height: 32px;
+            max-width: 55px;
+            max-height: 55px;
+            border: 2px solid #dbbd94;
+            border-radius: 6px;
+            background: rgba(255, 242, 222, 0.15);
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .slot.filled {
+            background: linear-gradient(135deg, #5a3d2b, #3d5a2b);
+            border-color: #f5e1b0;
+            box-shadow: inset 0 0 20px rgba(255, 215, 140, 0.2);
+        }
+
+        .slot img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        #flying-item {
+            position: fixed;
+            z-index: 150;
+            width: 8vmin;
+            height: 8vmin;
+            pointer-events: none;
+            opacity: 0;
+            transition: none;
+            border-radius: 50%;
+            box-shadow: 0 0 30px 12px rgba(255, 230, 180, 0.6);
+            background: rgba(255, 242, 222, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(1.2);
+        }
+
+        #flying-item img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            display: block;
+            border-radius: 20%;
+        }
+
+        #task-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: min(90%, 540px);
+            background: #f9edd8;
+            background-image: radial-gradient(circle at 20% 30%, #fdf3e0 2px, transparent 2px),
+                              radial-gradient(circle at 80% 70%, #f5e4ca 1px, transparent 2px);
+            background-size: 40px 40px;
+            border-radius: 42px 18px 42px 18px;
+            padding: 2rem 1.8rem 2.2rem;
+            box-shadow: 0 20px 40px rgba(60, 40, 20, 0.5),
+                        0 0 0 2px #dac29c,
+                        0 0 0 6px #efe1c6;
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(2px);
+            border: 1px solid #baa07c;
+            transition: opacity 0.2s;
+        }
+
+        #task-card.show {
+            display: block;
+        }
+
+        #task-text {
+            font-size: clamp(22px, 5vw, 34px);
+            color: #2f1e0c;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            margin-bottom: 1.8rem;
+            line-height: 1.4;
+            word-break: break-word;
+            background: rgba(255, 242, 222, 0.4);
+            padding: 12px 8px;
+            border-radius: 60px 12px 60px 12px;
+            box-shadow: inset 0 1px 6px rgba(150, 100, 50, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .btn-option {
+            flex: 1 1 80px;
+            min-width: 70px;
+            max-width: 140px;
+            padding: 14px 0;
+            font-size: clamp(20px, 4vw, 30px);
+            font-weight: 700;
+            border: none;
+            border-radius: 60px;
+            background: #ebdcc4;
+            color: #2d1b09;
+            box-shadow: 0 6px 0 #b2946e, 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.08s linear;
+            cursor: pointer;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            touch-action: manipulation;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: normal;
+        }
+
+        .btn-option:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #b2946e;
+        }
+
+        .btn-option:focus-visible {
+            outline: 3px solid #b87c4b;
+        }
+
+        #feedback {
+            margin-top: 18px;
+            font-size: clamp(20px, 4vw, 32px);
+            font-weight: 700;
+            min-height: 3.2rem;
+            transition: 0.15s;
+            color: #2f1e0c;
+            letter-spacing: 0.5px;
+        }
+
+        #feedback.correct {
+            color: #1b7a3a;
+        }
+
+        #feedback.wrong {
+            color: #b12222;
+        }
+
+        #start-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 12, 5, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: opacity 0.5s ease;
+        }
+
+        #start-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .start-box {
+            background: #f9edd8;
+            background-image: radial-gradient(circle at 20% 30%, #fdf3e0 2px, transparent 2px),
+                              radial-gradient(circle at 80% 70%, #f5e4ca 1px, transparent 2px);
+            background-size: 40px 40px;
+            max-width: 560px;
+            width: 100%;
+            padding: 2.5rem 2rem 2.2rem;
+            border-radius: 48px 20px 48px 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7), 0 0 0 3px #dac29c, 0 0 0 8px #efe1c6;
+            border: 1px solid #baa07c;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .start-box h1 {
+            font-size: clamp(28px, 5vw, 42px);
+            color: #2f1e0c;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .start-box .subtitle {
+            font-size: clamp(16px, 2.5vw, 22px);
+            color: #4d3420;
+            margin-bottom: 1.8rem;
+            line-height: 1.6;
+            font-weight: 500;
+            background: rgba(235, 215, 180, 0.3);
+            padding: 12px 16px;
+            border-radius: 30px;
+            border: 1px dashed #b2946e;
+        }
+
+        .start-box .instruction {
+            font-size: clamp(18px, 2.8vw, 26px);
+            color: #2f1e0c;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+            padding: 8px;
+        }
+
+        .start-box .instruction em {
+            font-style: normal;
+            color: #8b5e3c;
+            background: rgba(180, 130, 80, 0.15);
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        #btn-start {
+            background: #ebdcc4;
+            color: #2d1b09;
+            border: none;
+            padding: 16px 50px;
+            font-size: clamp(22px, 3.5vw, 32px);
+            font-weight: 700;
+            border-radius: 60px;
+            box-shadow: 0 8px 0 #b2946e, 0 10px 30px rgba(0,0,0,0.25);
+            cursor: pointer;
+            transition: all 0.08s linear;
+            touch-action: manipulation;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-style: normal;
+        }
+
+        #btn-start:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #b2946e;
+        }
+
+        #btn-start:hover {
+            background: #f0e2cc;
+        }
+
+        #win-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 12, 5, 0.7);
+            backdrop-filter: blur(3px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: auto;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        #win-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .win-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 20px 40px;
+            max-width: 900px;
+            width: 100%;
+            padding: 20px;
+            background: rgba(245, 225, 190, 0.1);
+            border-radius: 60px 20px 60px 20px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid #f3dbb6;
+        }
+
+        .win-text {
+            flex: 2 1 280px;
+            color: #faf0dc;
+            font-size: clamp(28px, 6vw, 52px);
+            font-weight: 800;
+            text-shadow: 0 4px 20px #0f0b06, 2px 4px 8px #1f140a;
+            letter-spacing: 0.04em;
+            line-height: 1.3;
+            text-align: center;
+        }
+
+        .win-dipper {
+            flex: 1 1 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 140px;
+        }
+
+        .win-dipper img {
+            width: 100%;
+            max-width: 260px;
+            height: auto;
+            filter: drop-shadow(0 12px 30px rgba(0,0,0,0.6));
+            display: block;
+        }
+
+        .leaf {
+            position: absolute;
+            top: -60px;
+            z-index: 210;
+            width: 28px;
+            height: 28px;
+            background: radial-gradient(circle at 30% 30%, #b28b4b, #6f4f1a);
+            border-radius: 0 60% 60% 60%;
+            opacity: 0.7;
+            transform: rotate(45deg);
+            animation: leafFall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes leafFall {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0.5; }
+            100% { transform: translateY(110vh) rotate(720deg) scale(1.2); opacity: 0.1; }
+        }
+
+        @media (max-width: 700px) {
+            .item {
+                width: 20vmin;
+                height: 20vmin;
+                box-shadow: 0 0 30px 12px rgba(255, 215, 150, 0.4);
+            }
+            #task-card {
+                padding: 1.6rem 1rem 1.8rem;
+                width: 92%;
+            }
+            .btn-option {
+                min-width: 80px;
+                height: 56px;
+                font-size: 24px;
+            }
+            .win-content {
+                flex-direction: column-reverse;
+                text-align: center;
+                padding: 16px;
+            }
+            .win-dipper img {
+                max-width: 180px;
+            }
+            .win-text {
+                font-size: clamp(26px, 8vw, 40px);
+            }
+            .slot {
+                width: 5vmin;
+                height: 5vmin;
+                min-width: 28px;
+                min-height: 28px;
+            }
+            #progress-bar {
+                gap: 4px;
+                padding: 6px 10px;
+                bottom: 15px;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .item {
+                width: 22vmin;
+                height: 22vmin;
+            }
+            .btn-option {
+                min-width: 70px;
+                height: 50px;
+                font-size: 22px;
+            }
+            .slot {
+                width: 6vmin;
+                height: 6vmin;
+                min-width: 24px;
+                min-height: 24px;
+            }
+            #progress-bar {
+                gap: 3px;
+                padding: 5px 8px;
+                bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="game">
+    <img id="bg" src="room.jpeg" alt="чердак" onerror="this.style.display='none'">
+    
+    <div id="progress-bar"></div>
+    
+    <div id="start-overlay">
+        <div class="start-box">
+            <h1>🎒 Dipper's Bag</h1>
+            <div class="subtitle">Gravity Falls · English Quest</div>
+            <div class="instruction">
+                Dipper is going to the forest.<br>
+                He needs <em>10 objects</em> from the room.<br>
+                <span style="font-size: 0.85em; color: #6b4f2e;">Find them!</span>
+            </div>
+            <button id="btn-start">Start</button>
+        </div>
+    </div>
+    
+    <div id="items-container"></div>
+    
+    <div id="task-card">
+        <div id="task-text">Dipper … a boy.</div>
+        <div class="btn-group" id="btn-group">
+            <button class="btn-option" data-value="is">is</button>
+            <button class="btn-option" data-value="am">am</button>
+            <button class="btn-option" data-value="are">are</button>
+        </div>
+        <div id="feedback"></div>
+    </div>
+    
+    <div id="win-overlay">
+        <div class="win-content">
+            <div class="win-text">Well done!<br>Now you are ready<br>for the forest!</div>
+            <div class="win-dipper">
+                <img src="Dipper.png" alt="Диппер" onerror="this.alt='Dipper'; this.style.fontSize='40px'; this.style.color='#f5e1b0'; this.style.background='#2d1f0e'; this.style.padding='20px'; this.style.borderRadius='50%'">
+            </div>
+        </div>
+    </div>
+    
+    <div id="flying-item"><img src="" alt=""></div>
+</div>
+
+<script>
+    (function() {
+        "use strict";
+
+        const ITEMS = [
+            { id: '01', text: 'Dipper … a boy.', correct: 'is' },
+            { id: '02', text: 'Mabel … a girl.', correct: 'is' },
+            { id: '03', text: 'Dipper and Mabel … twins.', correct: 'are' },
+            { id: '04', text: 'Dipper: “You … good!”', correct: 'are' },
+            { id: '05', text: 'Mabel: “I … cool!”', correct: 'am' },
+            { id: '06', text: 'Mabel: “We … twins”', correct: 'are' },
+            { id: '07', text: 'Dipper and Mabel … happy.', correct: 'are' },
+            { id: '08', text: 'Dipper: “I … clever.”', correct: 'am' },
+            { id: '09', text: 'Mabel: “You … nice!”', correct: 'are' },
+            { id: '10', text: 'Dipper: “It … silly!”', correct: 'is' }
+        ];
+
+        const container = document.getElementById('items-container');
+        const taskCard = document.getElementById('task-card');
+        const taskText = document.getElementById('task-text');
+        const feedback = document.getElementById('feedback');
+        const winOverlay = document.getElementById('win-overlay');
+        const startOverlay = document.getElementById('start-overlay');
+        const btnStart = document.getElementById('btn-start');
+        const progressBar = document.getElementById('progress-bar');
+        const flyingItem = document.getElementById('flying-item');
+        const flyingImg = flyingItem.querySelector('img');
+
+        let currentItemId = null;
+        let isCardOpen = false;
+        let foundItems = 0;
+        let itemElements = [];
+        let winShown = false;
+        let gameStarted = false;
+        let isFlying = false;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playTone(freq, duration, type = 'sine', volume = 0.25) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) { /* тихо */ }
+        }
+
+        function soundDing() {
+            playTone(880, 0.15, 'sine', 0.2);
+            setTimeout(() => playTone(1100, 0.1, 'sine', 0.15), 80);
+        }
+
+        function soundCorrect() {
+            playTone(1200, 0.12, 'sine', 0.2);
+            setTimeout(() => playTone(1500, 0.1, 'sine', 0.18), 100);
+        }
+
+        function soundWrong() {
+            playTone(260, 0.25, 'sawtooth', 0.1);
+        }
+
+        function soundVictory() {
+            const notes = [523, 659, 784];
+            notes.forEach((f, i) => {
+                setTimeout(() => playTone(f, 0.25, 'sine', 0.18), i * 160);
+            });
+        }
+
+        function createProgressBar() {
+            progressBar.innerHTML = '';
+            for (let i = 0; i < ITEMS.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.dataset.index = i;
+                progressBar.appendChild(slot);
+            }
+        }
+
+        function fillSlot(index, itemId) {
+            const slots = progressBar.querySelectorAll('.slot');
+            if (index >= slots.length) return;
+            const slot = slots[index];
+            slot.classList.add('filled');
+            const img = document.createElement('img');
+            img.src = itemId + '.png';
+            img.alt = itemId;
+            img.loading = 'lazy';
+            img.onerror = function() {
+                this.alt = '?';
+                this.style.background = '#6b4f3a';
+                this.style.borderRadius = '4px';
+            };
+            slot.appendChild(img);
+        }
+
+        function getNextEmptySlot() {
+            const slots = progressBar.querySelectorAll('.slot');
+            for (let i = 0; i < slots.length; i++) {
+                if (!slots[i].classList.contains('filled')) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        function animateFlight(itemElement, slotIndex, itemId) {
+            if (isFlying) return;
+            isFlying = true;
+
+            const rect = itemElement.getBoundingClientRect();
+            const slot = progressBar.querySelectorAll('.slot')[slotIndex];
+            const slotRect = slot.getBoundingClientRect();
+
+            const imgSrc = itemElement.querySelector('img').src;
+            flyingImg.src = imgSrc;
+            flyingImg.alt = itemId;
+            flyingItem.style.left = rect.left + rect.width/2 - flyingItem.offsetWidth/2 + 'px';
+            flyingItem.style.top = rect.top + rect.height/2 - flyingItem.offsetHeight/2 + 'px';
+            flyingItem.style.width = rect.width + 'px';
+            flyingItem.style.height = rect.height + 'px';
+            flyingItem.style.opacity = '1';
+
+            const startX = rect.left + rect.width/2;
+            const startY = rect.top + rect.height/2;
+            const endX = slotRect.left + slotRect.width/2;
+            const endY = slotRect.top + slotRect.height/2;
+
+            const duration = 700;
+            const startTime = performance.now();
+
+            function animateMove(time) {
+                const elapsed = time - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = progress < 0.5
+                    ? 4 * progress * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+                const currentX = startX + (endX - startX) * ease;
+                const currentY = startY + (endY - startY) * ease;
+                const scale = 1 - (ease * 0.4);
+                const size = rect.width * scale;
+
+                flyingItem.style.left = currentX - size/2 + 'px';
+                flyingItem.style.top = currentY - size/2 + 'px';
+                flyingItem.style.width = size + 'px';
+                flyingItem.style.height = size + 'px';
+                flyingItem.style.opacity = 1 - (ease * 0.2);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateMove);
+                } else {
+                    flyingItem.style.opacity = '0';
+                    isFlying = false;
+                    fillSlot(slotIndex, itemId);
+                    foundItems++;
+                    if (foundItems === ITEMS.length) {
+                        setTimeout(() => showWinScreen(), 300);
+                    }
+                }
+            }
+
+            requestAnimationFrame(animateMove);
+        }
+
+        function showWinScreen() {
+            if (winShown) return;
+            winShown = true;
+            winOverlay.classList.add('show');
+            soundVictory();
+            createLeaves(28);
+        }
+
+        function createLeaves(count = 22) {
+            const existing = document.querySelectorAll('.leaf');
+            existing.forEach(el => el.remove());
+
+            for (let i = 0; i < count; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'leaf';
+                const size = 20 + Math.random() * 35;
+                leaf.style.width = size + 'px';
+                leaf.style.height = size * (0.7 + Math.random() * 0.4) + 'px';
+                leaf.style.left = Math.random() * 100 + '%';
+                leaf.style.animationDuration = 7 + Math.random() * 12 + 's';
+                leaf.style.animationDelay = Math.random() * 10 + 's';
+                leaf.style.opacity = 0.3 + Math.random() * 0.5;
+                leaf.style.transform = `rotate(${Math.random()*360}deg)`;
+                const r = 140 + Math.floor(Math.random() * 80);
+                const g = 90 + Math.floor(Math.random() * 70);
+                const b = 30 + Math.floor(Math.random() * 50);
+                leaf.style.background = `radial-gradient(circle at 30% 30%, rgb(${r+30},${g+20},${b-10}), rgb(${r-20},${g-20},${b-10}))`;
+                document.getElementById('game').appendChild(leaf);
+            }
+        }
+
+        function closeCard() {
+            taskCard.classList.remove('show');
+            isCardOpen = false;
+            currentItemId = null;
+            feedback.textContent = '';
+            feedback.className = '';
+            document.querySelectorAll('.item').forEach(el => el.classList.remove('disabled'));
+        }
+
+        function handleAnswer(selected, itemId) {
+            if (!currentItemId || currentItemId !== itemId || isFlying) return;
+
+            const itemData = ITEMS.find(it => it.id === itemId);
+            if (!itemData) return;
+
+            const isCorrect = (selected === itemData.correct);
+
+            if (isCorrect) {
+                soundCorrect();
+                feedback.textContent = '✓ Correct!';
+                feedback.className = 'correct';
+
+                const el = itemElements.find(el => el.dataset.id === itemId);
+                if (el) {
+                    const slotIndex = getNextEmptySlot();
+                    if (slotIndex !== -1) {
+                        el.classList.add('hidden');
+                        animateFlight(el, slotIndex, itemId);
+                    }
+                }
+
+                setTimeout(() => {
+                    closeCard();
+                }, 400);
+
+            } else {
+                soundWrong();
+                feedback.textContent = '✗ Try again!';
+                feedback.className = 'wrong';
+                setTimeout(() => {
+                    feedback.textContent = '';
+                    feedback.className = '';
+                }, 4000);
+            }
+        }
+
+        function openTaskCard(itemId) {
+            if (isCardOpen || !gameStarted || isFlying) return;
+            const data = ITEMS.find(it => it.id === itemId);
+            if (!data) return;
+
+            document.querySelectorAll('.item').forEach(el => {
+                if (el.dataset.id !== itemId) el.classList.add('disabled');
+            });
+
+            currentItemId = itemId;
+            isCardOpen = true;
+            taskText.textContent = data.text;
+            feedback.textContent = '';
+            feedback.className = '';
+            taskCard.classList.add('show');
+
+            const group = document.getElementById('btn-group');
+            group.innerHTML = '';
+            ['is', 'am', 'are'].forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.dataset.value = val;
+                btn.textContent = val;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleAnswer(val, itemId);
+                });
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    handleAnswer(val, itemId);
+                });
+                group.appendChild(btn);
+            });
+        }
+
+        function createItems() {
+            container.innerHTML = '';
+            itemElements = [];
+            const count = ITEMS.length;
+            const w = window.innerWidth;
+            const size = (w < 700) ? 20 : 14;
+            const margin = size * 0.6;
+
+            const positions = [];
+            const attempts = 1000;
+            for (let i = 0; i < count; i++) {
+                let placed = false;
+                let tries = 0;
+                while (!placed && tries < attempts) {
+                    tries++;
+                    const x = margin + Math.random() * (100 - margin * 2);
+                    const y = margin + Math.random() * (100 - margin * 2);
+                    let overlap = false;
+                    for (const p of positions) {
+                        const dx = Math.abs(p.x - x);
+                        const dy = Math.abs(p.y - y);
+                        if (dx < size * 1.2 && dy < size * 1.2) {
+                            overlap = true;
+                            break;
+                        }
+                    }
+                    if (!overlap) {
+                        positions.push({ x, y });
+                        placed = true;
+                    }
+                }
+                if (!placed) {
+                    positions.push({ x: 10 + Math.random() * 80, y: 10 + Math.random() * 80 });
+                }
+            }
+
+            const shuffled = [...ITEMS];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            shuffled.forEach((item, idx) => {
+                const pos = positions[idx] || { x: 10 + Math.random() * 80, y: 10 + Math.random() * 80 };
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.dataset.id = item.id;
+                div.style.left = pos.x + '%';
+                div.style.top = pos.y + '%';
+                div.style.transform = `translate(-50%, -50%)`;
+                div.style.width = size + 'vmin';
+                div.style.height = size + 'vmin';
+
+                const img = document.createElement('img');
+                img.src = item.id + '.png';
+                img.alt = item.id;
+                img.loading = 'lazy';
+                img.onerror = function() {
+                    this.alt = '?';
+                    this.style.background = '#c9a77b';
+                    this.style.borderRadius = '20%';
+                };
+                div.appendChild(img);
+
+                div.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (!gameStarted) return;
+                    if (this.classList.contains('hidden')) return;
+                    if (isCardOpen) return;
+                    if (this.classList.contains('disabled')) return;
+                    if (isFlying) return;
+                    soundDing();
+                    openTaskCard(item.id);
+                });
+
+                container.appendChild(div);
+                itemElements.push(div);
+            });
+        }
+
+        function startGame() {
+            if (gameStarted) return;
+            gameStarted = true;
+            startOverlay.classList.add('hidden');
+            progressBar.classList.add('show');
+            document.querySelectorAll('.item').forEach(el => {
+                el.classList.add('active');
+            });
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function init() {
+            createProgressBar();
+            createItems();
+            
+            btnStart.addEventListener('click', startGame);
+            btnStart.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                startGame();
+            });
+
+            // Обработка изменения размера окна
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (!winShown && !isCardOpen && !gameStarted) {
+                        createItems();
+                        document.querySelectorAll('.item').forEach(function(el) {
+                            el.classList.remove('active');
+                        });
+                    }
+                }, 400);
+            });
+
+            taskCard.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>
