@@ -1,3 +1,5 @@
+Вот полный HTML-код игры «Dipper's bag» с прогресс-баром и анимированным полётом предметов.
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -49,30 +51,257 @@
             display: block;
         }
 
-        /* Счётчик в левом верхнем углу */
-        #counter {
+        /* контейнер для предметов */
+        #items-container {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 50;
-            background: rgba(30, 20, 10, 0.7);
-            backdrop-filter: blur(4px);
-            color: #f5e8d0;
-            font-size: clamp(18px, 2.8vmin, 30px);
-            font-weight: 700;
-            padding: 10px 20px;
-            border-radius: 40px;
-            border: 2px solid #dbbd94;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
             pointer-events: none;
-            font-style: normal;
-            display: none; /* скрыт до старта */
         }
 
-        #counter span {
-            color: #ffdd99;
+        .item {
+            position: absolute;
+            pointer-events: auto;
+            cursor: pointer;
+            width: 14vmin;
+            height: 14vmin;
+            border-radius: 50%;
+            box-shadow: 0 0 20px 6px rgba(255, 230, 180, 0.5), 0 0 40px 12px rgba(255, 210, 130, 0.2);
+            transition: transform 0.15s ease, box-shadow 0.2s, opacity 0.3s;
+            animation: float 2.8s ease-in-out infinite alternate;
+            will-change: transform;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .item.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+            border-radius: 20%;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .item:hover {
+            transform: scale(1.07);
+            box-shadow: 0 0 30px 12px rgba(255, 235, 150, 0.7);
+        }
+
+        .item.hidden {
+            opacity: 0;
+            pointer-events: none;
+            animation: none;
+        }
+
+        .item.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(-4px) rotate(-2deg); }
+            100% { transform: translateY(6px) rotate(2deg); }
+        }
+
+        /* Прогресс-бар */
+        #progress-bar {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(30, 20, 10, 0.5);
+            backdrop-filter: blur(4px);
+            padding: 8px 14px;
+            border-radius: 16px;
+            border: 2px solid #dbbd94;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        #progress-bar.show {
+            opacity: 1;
+        }
+
+        .slot {
+            width: 4.5vmin;
+            height: 4.5vmin;
+            min-width: 32px;
+            min-height: 32px;
+            max-width: 55px;
+            max-height: 55px;
+            border: 2px solid #dbbd94;
+            border-radius: 6px;
+            background: rgba(255, 242, 222, 0.15);
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .slot.filled {
+            background: linear-gradient(135deg, #5a3d2b, #3d5a2b);
+            border-color: #f5e1b0;
+            box-shadow: inset 0 0 20px rgba(255, 215, 140, 0.2);
+        }
+
+        .slot img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        /* Летающий предмет */
+        #flying-item {
+            position: fixed;
+            z-index: 150;
+            width: 8vmin;
+            height: 8vmin;
+            pointer-events: none;
+            opacity: 0;
+            transition: none;
+            border-radius: 50%;
+            box-shadow: 0 0 30px 12px rgba(255, 230, 180, 0.6);
+            background: rgba(255, 242, 222, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(1.2);
+        }
+
+        #flying-item img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            display: block;
+            border-radius: 20%;
+        }
+
+        /* карточка задания (крафт) */
+        #task-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: min(90%, 540px);
+            background: #f9edd8;
+            background-image: radial-gradient(circle at 20% 30%, #fdf3e0 2px, transparent 2px),
+                              radial-gradient(circle at 80% 70%, #f5e4ca 1px, transparent 2px);
+            background-size: 40px 40px;
+            border-radius: 42px 18px 42px 18px;
+            padding: 2rem 1.8rem 2.2rem;
+            box-shadow: 0 20px 40px rgba(60, 40, 20, 0.5),
+                        0 0 0 2px #dac29c,
+                        0 0 0 6px #efe1c6;
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(2px);
+            border: 1px solid #baa07c;
+            transition: opacity 0.2s;
+        }
+
+        #task-card.show {
+            display: block;
+        }
+
+        #task-text {
+            font-size: clamp(22px, 5vw, 34px);
+            color: #2f1e0c;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            margin-bottom: 1.8rem;
+            line-height: 1.4;
+            word-break: break-word;
+            background: rgba(255, 242, 222, 0.4);
+            padding: 12px 8px;
+            border-radius: 60px 12px 60px 12px;
+            box-shadow: inset 0 1px 6px rgba(150, 100, 50, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .btn-option {
+            flex: 1 1 80px;
+            min-width: 70px;
+            max-width: 140px;
+            padding: 14px 0;
+            font-size: clamp(20px, 4vw, 30px);
+            font-weight: 700;
+            border: none;
+            border-radius: 60px;
+            background: #ebdcc4;
+            color: #2d1b09;
+            box-shadow: 0 6px 0 #b2946e, 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 0.08s linear;
+            cursor: pointer;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            touch-action: manipulation;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: normal;
+        }
+
+        .btn-option:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #b2946e;
+        }
+
+        .btn-option:focus-visible {
+            outline: 3px solid #b87c4b;
+        }
+
+        #feedback {
+            margin-top: 18px;
+            font-size: clamp(20px, 4vw, 32px);
+            font-weight: 700;
+            min-height: 3.2rem;
+            transition: 0.15s;
+            color: #2f1e0c;
+            letter-spacing: 0.5px;
+        }
+
+        #feedback.correct {
+            color: #1b7a3a;
+        }
+
+        #feedback.wrong {
+            color: #b12222;
         }
 
         /* Стартовое окно */
@@ -178,172 +407,6 @@
 
         #btn-start:hover {
             background: #f0e2cc;
-        }
-
-        /* контейнер для предметов */
-        #items-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .item {
-            position: absolute;
-            pointer-events: auto;
-            cursor: pointer;
-            width: 14vmin;
-            height: 14vmin;
-            border-radius: 50%;
-            box-shadow: 0 0 20px 6px rgba(255, 230, 180, 0.5), 0 0 40px 12px rgba(255, 210, 130, 0.2);
-            transition: transform 0.15s ease, box-shadow 0.2s;
-            animation: float 2.8s ease-in-out infinite alternate;
-            will-change: transform;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            opacity: 0; /* скрыты до старта */
-            pointer-events: none;
-        }
-
-        .item.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .item img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            pointer-events: none;
-            border-radius: 20%;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-        }
-
-        .item:hover {
-            transform: scale(1.07);
-            box-shadow: 0 0 30px 12px rgba(255, 235, 150, 0.7);
-        }
-
-        .item.hidden {
-            display: none;
-        }
-
-        .item.disabled {
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(-4px) rotate(-2deg); }
-            100% { transform: translateY(6px) rotate(2deg); }
-        }
-
-        /* карточка задания (крафт) */
-        #task-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 100;
-            width: min(90%, 540px);
-            background: #f9edd8;
-            background-image: radial-gradient(circle at 20% 30%, #fdf3e0 2px, transparent 2px),
-                              radial-gradient(circle at 80% 70%, #f5e4ca 1px, transparent 2px);
-            background-size: 40px 40px;
-            border-radius: 42px 18px 42px 18px;
-            padding: 2rem 1.8rem 2.2rem;
-            box-shadow: 0 20px 40px rgba(60, 40, 20, 0.5),
-                        0 0 0 2px #dac29c,
-                        0 0 0 6px #efe1c6;
-            text-align: center;
-            display: none;
-            backdrop-filter: blur(2px);
-            border: 1px solid #baa07c;
-            transition: opacity 0.2s;
-        }
-
-        #task-card.show {
-            display: block;
-        }
-
-        #task-text {
-            font-size: clamp(22px, 5vw, 34px);
-            color: #2f1e0c;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            margin-bottom: 1.8rem;
-            line-height: 1.4;
-            word-break: break-word;
-            background: rgba(255, 242, 222, 0.4);
-            padding: 12px 8px;
-            border-radius: 60px 12px 60px 12px;
-            box-shadow: inset 0 1px 6px rgba(150, 100, 50, 0.1);
-        }
-
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: center;
-            margin-top: 8px;
-        }
-
-        .btn-option {
-            flex: 1 1 80px;
-            min-width: 70px;
-            max-width: 140px;
-            padding: 14px 0;
-            font-size: clamp(20px, 4vw, 30px);
-            font-weight: 700;
-            border: none;
-            border-radius: 60px;
-            background: #ebdcc4;
-            color: #2d1b09;
-            box-shadow: 0 6px 0 #b2946e, 0 8px 16px rgba(0,0,0,0.2);
-            transition: all 0.08s linear;
-            cursor: pointer;
-            text-transform: lowercase;
-            letter-spacing: 0.5px;
-            touch-action: manipulation;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-style: normal;
-        }
-
-        .btn-option:active {
-            transform: translateY(5px);
-            box-shadow: 0 1px 0 #b2946e;
-        }
-
-        .btn-option:focus-visible {
-            outline: 3px solid #b87c4b;
-        }
-
-        #feedback {
-            margin-top: 18px;
-            font-size: clamp(20px, 4vw, 32px);
-            font-weight: 700;
-            min-height: 3.2rem;
-            transition: 0.15s;
-            color: #2f1e0c;
-            letter-spacing: 0.5px;
-        }
-
-        #feedback.correct {
-            color: #1b7a3a;
-        }
-
-        #feedback.wrong {
-            color: #b12222;
         }
 
         /* оверлей победы */
@@ -462,14 +525,16 @@
             .win-text {
                 font-size: clamp(26px, 8vw, 40px);
             }
-            #counter {
-                top: 12px;
-                left: 12px;
-                padding: 6px 14px;
-                font-size: clamp(14px, 2.4vmin, 22px);
+            .slot {
+                width: 5vmin;
+                height: 5vmin;
+                min-width: 28px;
+                min-height: 28px;
             }
-            .start-box {
-                padding: 2rem 1.2rem 1.8rem;
+            #progress-bar {
+                gap: 4px;
+                padding: 6px 10px;
+                bottom: 15px;
             }
         }
 
@@ -483,11 +548,16 @@
                 height: 50px;
                 font-size: 22px;
             }
-            #counter {
-                top: 10px;
-                left: 10px;
-                padding: 5px 12px;
-                font-size: clamp(12px, 2.2vmin, 18px);
+            .slot {
+                width: 6vmin;
+                height: 6vmin;
+                min-width: 24px;
+                min-height: 24px;
+            }
+            #progress-bar {
+                gap: 3px;
+                padding: 5px 8px;
+                bottom: 10px;
             }
         }
     </style>
@@ -497,8 +567,8 @@
     <!-- фон -->
     <img id="bg" src="room.jpeg" alt="чердак" onerror="this.style.display='none'">
 
-    <!-- Счётчик прогресса -->
-    <div id="counter"><span id="found-count">0</span> of <span id="total-count">10</span></div>
+    <!-- Прогресс-бар -->
+    <div id="progress-bar"></div>
 
     <!-- Стартовое окно -->
     <div id="start-overlay">
@@ -533,10 +603,13 @@
         <div class="win-content">
             <div class="win-text">Well done!<br>Now you are ready<br>for the forest!</div>
             <div class="win-dipper">
-                <img src="dipper.png" alt="Диппер" onerror="this.alt='Dipper'; this.style.fontSize='40px'; this.style.color='#f5e1b0'; this.style.background='#2d1f0e'; this.style.padding='20px'; this.style.borderRadius='50%'">
+                <img src="Dipper.png" alt="Диппер" onerror="this.alt='Dipper'; this.style.fontSize='40px'; this.style.color='#f5e1b0'; this.style.background='#2d1f0e'; this.style.padding='20px'; this.style.borderRadius='50%'">
             </div>
         </div>
     </div>
+
+    <!-- летающий предмет (анимация) -->
+    <div id="flying-item"><img src="" alt=""></div>
 </div>
 
 <script>
@@ -564,26 +637,20 @@
         const feedback = document.getElementById('feedback');
         const winOverlay = document.getElementById('win-overlay');
         const bg = document.getElementById('bg');
-        const foundCountEl = document.getElementById('found-count');
-        const totalCountEl = document.getElementById('total-count');
         const startOverlay = document.getElementById('start-overlay');
         const btnStart = document.getElementById('btn-start');
-        const counter = document.getElementById('counter');
+        const progressBar = document.getElementById('progress-bar');
+        const flyingItem = document.getElementById('flying-item');
+        const flyingImg = flyingItem.querySelector('img');
 
         // ---- состояние ----
         let currentItemId = null;
         let isCardOpen = false;
-        let itemsRemaining = ITEMS.length;
+        let foundItems = 0;
         let itemElements = [];
         let winShown = false;
         let gameStarted = false;
-
-        // ---- обновление счётчика ----
-        function updateCounter() {
-            const found = ITEMS.length - itemsRemaining;
-            foundCountEl.textContent = found;
-            totalCountEl.textContent = ITEMS.length;
-        }
+        let isFlying = false;
 
         // ---- Web Audio ----
         let audioCtx = null;
@@ -631,6 +698,122 @@
             });
         }
 
+        // ---- прогресс-бар ----
+        function createProgressBar() {
+            progressBar.innerHTML = '';
+            for (let i = 0; i < ITEMS.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.dataset.index = i;
+                progressBar.appendChild(slot);
+            }
+        }
+
+        function fillSlot(index, itemId) {
+            const slots = progressBar.querySelectorAll('.slot');
+            if (index >= slots.length) return;
+            const slot = slots[index];
+            slot.classList.add('filled');
+            const img = document.createElement('img');
+            img.src = itemId + '.png';
+            img.alt = itemId;
+            img.loading = 'lazy';
+            img.onerror = function() {
+                this.alt = '?';
+                this.style.background = '#6b4f3a';
+                this.style.borderRadius = '4px';
+            };
+            slot.appendChild(img);
+        }
+
+        function getNextEmptySlot() {
+            const slots = progressBar.querySelectorAll('.slot');
+            for (let i = 0; i < slots.length; i++) {
+                if (!slots[i].classList.contains('filled')) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        // ---- анимация полёта ----
+        function animateFlight(itemElement, slotIndex, itemId) {
+            if (isFlying) return;
+            isFlying = true;
+
+            const rect = itemElement.getBoundingClientRect();
+            const slot = progressBar.querySelectorAll('.slot')[slotIndex];
+            const slotRect = slot.getBoundingClientRect();
+
+            // Настраиваем летающий элемент
+            const imgSrc = itemElement.querySelector('img').src;
+            flyingImg.src = imgSrc;
+            flyingImg.alt = itemId;
+            flyingItem.style.left = rect.left + rect.width/2 - flyingItem.offsetWidth/2 + 'px';
+            flyingItem.style.top = rect.top + rect.height/2 - flyingItem.offsetHeight/2 + 'px';
+            flyingItem.style.width = rect.width + 'px';
+            flyingItem.style.height = rect.height + 'px';
+            flyingItem.style.opacity = '1';
+
+            // Запускаем анимацию через requestAnimationFrame
+            const startX = rect.left + rect.width/2;
+            const startY = rect.top + rect.height/2;
+            const endX = slotRect.left + slotRect.width/2;
+            const endY = slotRect.top + slotRect.height/2;
+
+            const duration = 700;
+            const startTime = performance.now();
+
+            function animateMove(time) {
+                const elapsed = time - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // easeInOutCubic
+                const ease = progress < 0.5
+                    ? 4 * progress * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+                const currentX = startX + (endX - startX) * ease;
+                const currentY = startY + (endY - startY) * ease;
+
+                // Уменьшаем размер к концу
+                const scale = 1 - (ease * 0.4);
+                const size = rect.width * scale;
+
+                flyingItem.style.left = currentX - size/2 + 'px';
+                flyingItem.style.top = currentY - size/2 + 'px';
+                flyingItem.style.width = size + 'px';
+                flyingItem.style.height = size + 'px';
+                flyingItem.style.opacity = 1 - (ease * 0.2);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateMove);
+                } else {
+                    // Завершаем анимацию
+                    flyingItem.style.opacity = '0';
+                    isFlying = false;
+                    fillSlot(slotIndex, itemId);
+                    foundItems++;
+
+                    // Проверяем победу
+                    if (foundItems === ITEMS.length) {
+                        setTimeout(() => showWinScreen(), 300);
+                    }
+                }
+            }
+
+            requestAnimationFrame(animateMove);
+        }
+
+        // ---- показ финала ----
+        function showWinScreen() {
+            if (winShown) return;
+            winShown = true;
+            winOverlay.classList.add('show');
+            soundVictory();
+            createLeaves(28);
+        }
+
         // ---- генерация листьев ----
         function createLeaves(count = 22) {
             const existing = document.querySelectorAll('.leaf');
@@ -655,22 +838,6 @@
             }
         }
 
-        // ---- показ финала ----
-        function showWinScreen() {
-            if (winShown) return;
-            winShown = true;
-            winOverlay.classList.add('show');
-            soundVictory();
-            createLeaves(28);
-        }
-
-        // ---- проверка победы ----
-        function checkWin() {
-            if (itemsRemaining === 0 && !winShown) {
-                showWinScreen();
-            }
-        }
-
         // ---- закрыть карточку ----
         function closeCard() {
             taskCard.classList.remove('show');
@@ -683,7 +850,7 @@
 
         // ---- обработчик ответа ----
         function handleAnswer(selected, itemId) {
-            if (!currentItemId || currentItemId !== itemId) return;
+            if (!currentItemId || currentItemId !== itemId || isFlying) return;
 
             const itemData = ITEMS.find(it => it.id === itemId);
             if (!itemData) return;
@@ -694,16 +861,24 @@
                 soundCorrect();
                 feedback.textContent = '✓ Correct!';
                 feedback.className = 'correct';
+
+                // Находим элемент предмета
                 const el = itemElements.find(el => el.dataset.id === itemId);
                 if (el) {
-                    el.classList.add('hidden');
-                    itemsRemaining--;
-                    updateCounter();
+                    const slotIndex = getNextEmptySlot();
+                    if (slotIndex !== -1) {
+                        // Скрываем предмет
+                        el.classList.add('hidden');
+                        // Запускаем анимацию полёта
+                        animateFlight(el, slotIndex, itemId);
+                    }
                 }
+
+                // Закрываем карточку через паузу
                 setTimeout(() => {
                     closeCard();
-                    checkWin();
                 }, 400);
+
             } else {
                 soundWrong();
                 feedback.textContent = '✗ Try again!';
@@ -717,10 +892,11 @@
 
         // ---- открыть карточку ----
         function openTaskCard(itemId) {
-            if (isCardOpen || !gameStarted) return;
+            if (isCardOpen || !gameStarted || isFlying) return;
             const data = ITEMS.find(it => it.id === itemId);
             if (!data) return;
 
+            // Блокируем другие предметы
             document.querySelectorAll('.item').forEach(el => {
                 if (el.dataset.id !== itemId) el.classList.add('disabled');
             });
@@ -806,107 +982,4 @@
                 div.style.height = size + 'vmin';
 
                 const img = document.createElement('img');
-                img.src = item.id + '.png';
-                img.alt = item.id;
-                img.loading = 'lazy';
-                img.onerror = function() {
-                    this.alt = '?';
-                    this.style.background = '#c9a77b';
-                    this.style.borderRadius = '20%';
-                };
-                div.appendChild(img);
-
-                div.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (!gameStarted) return;
-                    if (div.classList.contains('hidden')) return;
-                    if (isCardOpen) return;
-                    if (div.classList.contains('disabled')) return;
-                    soundDing();
-                    openTaskCard(item.id);
-                });
-
-                container.appendChild(div);
-                itemElements.push(div);
-            });
-
-            updateCounter();
-        }
-
-        // ---- старт игры ----
-        function startGame() {
-            if (gameStarted) return;
-            gameStarted = true;
-            startOverlay.classList.add('hidden');
-            counter.style.display = 'block';
-            // активируем предметы
-            document.querySelectorAll('.item').forEach(el => {
-                el.classList.add('active');
-            });
-            // разблокируем аудио-контекст
-            initAudio();
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        // ---- рестарт ----
-        function resetGame() {
-            closeCard();
-            winOverlay.classList.remove('show');
-            winShown = false;
-            itemsRemaining = ITEMS.length;
-            gameStarted = false;
-            document.querySelectorAll('.leaf').forEach(el => el.remove());
-            counter.style.display = 'none';
-            startOverlay.classList.remove('hidden');
-            createItems();
-            // все предметы неактивны до старта
-            document.querySelectorAll('.item').forEach(el => {
-                el.classList.remove('active');
-            });
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        // ---- инициализация ----
-        function init() {
-            bg.onerror = function() {
-                this.style.display = 'none';
-            };
-            createItems();
-            // все предметы неактивны до старта
-            document.querySelectorAll('.item').forEach(el => {
-                el.classList.remove('active');
-            });
-
-            btnStart.addEventListener('click', startGame);
-            btnStart.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                startGame();
-            });
-
-            let resizeTimer;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    if (!winShown && !isCardOpen && !gameStarted) {
-                        // пересоздаём предметы, но не сбрасываем старт
-                        createItems();
-                        document.querySelectorAll('.item').forEach(el => {
-                            el.classList.remove('active');
-                        });
-                    }
-                }, 400);
-            });
-
-            taskCard.addEventListener('click', (e) => e.stopPropagation());
-        }
-
-        init();
-        window.__resetGame = resetGame;
-    })();
-</script>
-</body>
-</html>
+                img.src =
