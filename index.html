@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+     <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -946,12 +946,12 @@
                 };
                 div.appendChild(img);
 
-                div.addEventListener('click', (e) => {
+                div.addEventListener('click', function(e) {
                     e.stopPropagation();
                     if (!gameStarted) return;
-                    if (div.classList.contains('hidden')) return;
+                    if (this.classList.contains('hidden')) return;
                     if (isCardOpen) return;
-                    if (div.classList.contains('disabled')) return;
+                    if (this.classList.contains('disabled')) return;
                     if (isFlying) return;
                     soundDing();
                     openTaskCard(item.id);
@@ -976,14 +976,37 @@
             }
         }
 
-        function resetGame() {
-            closeCard();
-            winOverlay.classList.remove('show');
-            winShown = false;
-            foundItems = 0;
-            gameStarted = false;
-            isFlying = false;
-            document.querySelectorAll('.leaf').forEach(el => el.remove());
-            progressBar.classList.remove('show');
-            startOverlay.classList.remove('hidden');
-            flyingItem.style.opacity = '
+        function init() {
+            createProgressBar();
+            createItems();
+            
+            btnStart.addEventListener('click', startGame);
+            btnStart.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                startGame();
+            });
+
+            // Обработка изменения размера окна
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (!winShown && !isCardOpen && !gameStarted) {
+                        createItems();
+                        document.querySelectorAll('.item').forEach(function(el) {
+                            el.classList.remove('active');
+                        });
+                    }
+                }, 400);
+            });
+
+            taskCard.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>
