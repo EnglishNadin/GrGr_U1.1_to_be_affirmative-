@@ -36,7 +36,6 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.7);
         }
 
-        /* фон — room.jpeg */
         #bg {
             position: absolute;
             top: 0;
@@ -49,7 +48,6 @@
             display: block;
         }
 
-        /* контейнер для предметов */
         #items-container {
             position: absolute;
             top: 0;
@@ -116,7 +114,6 @@
             100% { transform: translateY(6px) rotate(2deg); }
         }
 
-        /* Прогресс-бар */
         #progress-bar {
             position: absolute;
             bottom: 25px;
@@ -175,7 +172,6 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
-        /* Летающий предмет */
         #flying-item {
             position: fixed;
             z-index: 150;
@@ -201,7 +197,6 @@
             border-radius: 20%;
         }
 
-        /* карточка задания (крафт) */
         #task-card {
             position: absolute;
             top: 50%;
@@ -302,7 +297,6 @@
             color: #b12222;
         }
 
-        /* Стартовое окно */
         #start-overlay {
             position: absolute;
             top: 0;
@@ -407,7 +401,6 @@
             background: #f0e2cc;
         }
 
-        /* оверлей победы */
         #win-overlay {
             position: absolute;
             top: 0;
@@ -476,7 +469,6 @@
             display: block;
         }
 
-        /* листопад */
         .leaf {
             position: absolute;
             top: -60px;
@@ -496,7 +488,6 @@
             100% { transform: translateY(110vh) rotate(720deg) scale(1.2); opacity: 0.1; }
         }
 
-        /* адаптив */
         @media (max-width: 700px) {
             .item {
                 width: 20vmin;
@@ -562,13 +553,10 @@
 </head>
 <body>
 <div id="game">
-    <!-- фон -->
     <img id="bg" src="room.jpeg" alt="чердак" onerror="this.style.display='none'">
-
-    <!-- Прогресс-бар -->
+    
     <div id="progress-bar"></div>
-
-    <!-- Стартовое окно -->
+    
     <div id="start-overlay">
         <div class="start-box">
             <h1>🎒 Dipper's Bag</h1>
@@ -581,11 +569,9 @@
             <button id="btn-start">Start</button>
         </div>
     </div>
-
-    <!-- контейнер для предметов -->
+    
     <div id="items-container"></div>
-
-    <!-- карточка задания -->
+    
     <div id="task-card">
         <div id="task-text">Dipper … a boy.</div>
         <div class="btn-group" id="btn-group">
@@ -595,8 +581,7 @@
         </div>
         <div id="feedback"></div>
     </div>
-
-    <!-- оверлей победы -->
+    
     <div id="win-overlay">
         <div class="win-content">
             <div class="win-text">Well done!<br>Now you are ready<br>for the forest!</div>
@@ -605,8 +590,7 @@
             </div>
         </div>
     </div>
-
-    <!-- летающий предмет (анимация) -->
+    
     <div id="flying-item"><img src="" alt=""></div>
 </div>
 
@@ -614,7 +598,6 @@
     (function() {
         "use strict";
 
-        // ---- конфиг ----
         const ITEMS = [
             { id: '01', text: 'Dipper … a boy.', correct: 'is' },
             { id: '02', text: 'Mabel … a girl.', correct: 'is' },
@@ -628,20 +611,17 @@
             { id: '10', text: 'Dipper: “It … silly!”', correct: 'is' }
         ];
 
-        // ---- DOM ----
         const container = document.getElementById('items-container');
         const taskCard = document.getElementById('task-card');
         const taskText = document.getElementById('task-text');
         const feedback = document.getElementById('feedback');
         const winOverlay = document.getElementById('win-overlay');
-        const bg = document.getElementById('bg');
         const startOverlay = document.getElementById('start-overlay');
         const btnStart = document.getElementById('btn-start');
         const progressBar = document.getElementById('progress-bar');
         const flyingItem = document.getElementById('flying-item');
         const flyingImg = flyingItem.querySelector('img');
 
-        // ---- состояние ----
         let currentItemId = null;
         let isCardOpen = false;
         let foundItems = 0;
@@ -649,8 +629,6 @@
         let winShown = false;
         let gameStarted = false;
         let isFlying = false;
-
-        // ---- Web Audio ----
         let audioCtx = null;
 
         function initAudio() {
@@ -696,7 +674,6 @@
             });
         }
 
-        // ---- прогресс-бар ----
         function createProgressBar() {
             progressBar.innerHTML = '';
             for (let i = 0; i < ITEMS.length; i++) {
@@ -734,7 +711,6 @@
             return -1;
         }
 
-        // ---- анимация полёта ----
         function animateFlight(itemElement, slotIndex, itemId) {
             if (isFlying) return;
             isFlying = true;
@@ -743,7 +719,6 @@
             const slot = progressBar.querySelectorAll('.slot')[slotIndex];
             const slotRect = slot.getBoundingClientRect();
 
-            // Настраиваем летающий элемент
             const imgSrc = itemElement.querySelector('img').src;
             flyingImg.src = imgSrc;
             flyingImg.alt = itemId;
@@ -753,7 +728,6 @@
             flyingItem.style.height = rect.height + 'px';
             flyingItem.style.opacity = '1';
 
-            // Запускаем анимацию через requestAnimationFrame
             const startX = rect.left + rect.width/2;
             const startY = rect.top + rect.height/2;
             const endX = slotRect.left + slotRect.width/2;
@@ -765,16 +739,12 @@
             function animateMove(time) {
                 const elapsed = time - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-
-                // easeInOutCubic
                 const ease = progress < 0.5
                     ? 4 * progress * progress * progress
                     : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
                 const currentX = startX + (endX - startX) * ease;
                 const currentY = startY + (endY - startY) * ease;
-
-                // Уменьшаем размер к концу
                 const scale = 1 - (ease * 0.4);
                 const size = rect.width * scale;
 
@@ -787,13 +757,10 @@
                 if (progress < 1) {
                     requestAnimationFrame(animateMove);
                 } else {
-                    // Завершаем анимацию
                     flyingItem.style.opacity = '0';
                     isFlying = false;
                     fillSlot(slotIndex, itemId);
                     foundItems++;
-
-                    // Проверяем победу
                     if (foundItems === ITEMS.length) {
                         setTimeout(() => showWinScreen(), 300);
                     }
@@ -803,7 +770,6 @@
             requestAnimationFrame(animateMove);
         }
 
-        // ---- показ финала ----
         function showWinScreen() {
             if (winShown) return;
             winShown = true;
@@ -812,7 +778,6 @@
             createLeaves(28);
         }
 
-        // ---- генерация листьев ----
         function createLeaves(count = 22) {
             const existing = document.querySelectorAll('.leaf');
             existing.forEach(el => el.remove());
@@ -836,7 +801,6 @@
             }
         }
 
-        // ---- закрыть карточку ----
         function closeCard() {
             taskCard.classList.remove('show');
             isCardOpen = false;
@@ -846,7 +810,6 @@
             document.querySelectorAll('.item').forEach(el => el.classList.remove('disabled'));
         }
 
-        // ---- обработчик ответа ----
         function handleAnswer(selected, itemId) {
             if (!currentItemId || currentItemId !== itemId || isFlying) return;
 
@@ -860,19 +823,15 @@
                 feedback.textContent = '✓ Correct!';
                 feedback.className = 'correct';
 
-                // Находим элемент предмета
                 const el = itemElements.find(el => el.dataset.id === itemId);
                 if (el) {
                     const slotIndex = getNextEmptySlot();
                     if (slotIndex !== -1) {
-                        // Скрываем предмет
                         el.classList.add('hidden');
-                        // Запускаем анимацию полёта
                         animateFlight(el, slotIndex, itemId);
                     }
                 }
 
-                // Закрываем карточку через паузу
                 setTimeout(() => {
                     closeCard();
                 }, 400);
@@ -888,13 +847,11 @@
             }
         }
 
-        // ---- открыть карточку ----
         function openTaskCard(itemId) {
             if (isCardOpen || !gameStarted || isFlying) return;
             const data = ITEMS.find(it => it.id === itemId);
             if (!data) return;
 
-            // Блокируем другие предметы
             document.querySelectorAll('.item').forEach(el => {
                 if (el.dataset.id !== itemId) el.classList.add('disabled');
             });
@@ -925,7 +882,6 @@
             });
         }
 
-        // ---- создание предметов ----
         function createItems() {
             container.innerHTML = '';
             itemElements = [];
@@ -980,4 +936,54 @@
                 div.style.height = size + 'vmin';
 
                 const img = document.createElement('img');
-                img.src =
+                img.src = item.id + '.png';
+                img.alt = item.id;
+                img.loading = 'lazy';
+                img.onerror = function() {
+                    this.alt = '?';
+                    this.style.background = '#c9a77b';
+                    this.style.borderRadius = '20%';
+                };
+                div.appendChild(img);
+
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!gameStarted) return;
+                    if (div.classList.contains('hidden')) return;
+                    if (isCardOpen) return;
+                    if (div.classList.contains('disabled')) return;
+                    if (isFlying) return;
+                    soundDing();
+                    openTaskCard(item.id);
+                });
+
+                container.appendChild(div);
+                itemElements.push(div);
+            });
+        }
+
+        function startGame() {
+            if (gameStarted) return;
+            gameStarted = true;
+            startOverlay.classList.add('hidden');
+            progressBar.classList.add('show');
+            document.querySelectorAll('.item').forEach(el => {
+                el.classList.add('active');
+            });
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function resetGame() {
+            closeCard();
+            winOverlay.classList.remove('show');
+            winShown = false;
+            foundItems = 0;
+            gameStarted = false;
+            isFlying = false;
+            document.querySelectorAll('.leaf').forEach(el => el.remove());
+            progressBar.classList.remove('show');
+            startOverlay.classList.remove('hidden');
+            flyingItem.style.opacity = '
